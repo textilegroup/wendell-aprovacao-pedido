@@ -268,7 +268,8 @@ var BX_TYPE_ID  = 1070;
 var CAMPO_STATUS   = 'ufCrm29_1773692249';
 var CAMPO_MOTIVO   = 'ufCrm29_1770778401663';
 var CAMPO_DATA_APR = 'ufCrm29_1780887933377';
-var CAMPO_PDF_LINK = 'ufCrm29_1780885857294';
+var CAMPO_PDF_LINK  = 'ufCrm29_1780885857294';   // link texto (fallback)
+var CAMPO_PRE_PED   = 'ufCrm29_1780621188016';   // campo arquivo PRÉ-PEDIDO
 var ID_APROVADO  = '4185';
 var ID_REPROVADO = '4187';
 
@@ -341,10 +342,16 @@ async function carregarDeal() {
                 var motivo = item[CAMPO_MOTIVO] || '';
                 subEl.innerHTML = 'Este pedido foi REPROVADO.' + (motivo ? '<br><br><strong>Motivo:</strong> ' + motivo : '');
             }
-            var linkPDF = item[CAMPO_PDF_LINK] || '';
-            if (linkPDF) {
+            var linkPDF2 = '';
+            var ppArr = item[CAMPO_PRE_PED];
+            if (Array.isArray(ppArr) && ppArr.length > 0) {
+                var arq2 = ppArr[ppArr.length - 1];
+                linkPDF2 = (arq2 && (arq2.urlMachine || arq2.url || arq2.urlPreview)) || '';
+            }
+            if (!linkPDF2) linkPDF2 = item[CAMPO_PDF_LINK] || '';
+            if (linkPDF2) {
                 var alreadyPdf = document.getElementById('alreadyPdfLink');
-                alreadyPdf.href = linkPDF;
+                alreadyPdf.href = linkPDF2;
                 alreadyPdf.style.display = 'inline-block';
             }
             show('stateAlready');
@@ -361,8 +368,14 @@ async function carregarDeal() {
         document.getElementById('infoCliente').textContent = clienteMatch ? clienteMatch[1].trim() : (item.title || '—');
         document.getElementById('infoCNPJ').textContent    = cnpjMatch    ? cnpjMatch[1].trim()    : '—';
 
-        // Botão PDF
-        var linkPDF = item[CAMPO_PDF_LINK] || '';
+        // Botão PDF — tenta urlMachine do campo PRÉ-PEDIDO, fallback no campo texto
+        var linkPDF = '';
+        var prePedArr = item[CAMPO_PRE_PED];
+        if (Array.isArray(prePedArr) && prePedArr.length > 0) {
+            var arq = prePedArr[prePedArr.length - 1];
+            linkPDF = (arq && (arq.urlMachine || arq.url || arq.urlPreview)) || '';
+        }
+        if (!linkPDF) linkPDF = item[CAMPO_PDF_LINK] || '';
         if (linkPDF) {
             var btn = document.getElementById('pdfBtn');
             btn.href = linkPDF;
